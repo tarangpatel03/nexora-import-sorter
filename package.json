@@ -1,0 +1,57 @@
+{
+  "name": "nexora-import-sorter",
+  "displayName": "Import Sorter",
+  "description": "Sort TypeScript imports into library, absolute, and relative groups.",
+  "version": "0.0.1",
+  "publisher": "Nexora",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:import-sorter.sortImports"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "import-sorter.sortImports",
+        "title": "Import Sorter: Sort Imports"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "import-sorter.sortImports",
+        "key": "cmd+shift+i",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "@types/vscode": "^1.125.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "eslint": "^10.5.0",
+    "typescript-eslint": "^8.61.1"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}
