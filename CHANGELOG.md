@@ -1,9 +1,13 @@
 # Change Log
 
-All notable changes to the "import-sorter" extension will be documented in this file.
+## 0.0.1
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+Initial release.
 
-## [Unreleased]
+Features:
 
-- Initial release
+- Side effect import sorting
+- Library import sorting
+- Absolute import sorting
+- Relative import sorting
+- TypeScript and TSX support

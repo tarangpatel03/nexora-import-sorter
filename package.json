@@ -5,6 +5,11 @@
   "version": "0.0.1",
   "publisher": "Nexora",
   "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/<your-username>/nexora-import-sorter"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.125.0"
   },
