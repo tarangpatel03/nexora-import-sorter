@@ -44,10 +44,7 @@ function formatGroup(title: string, imports: ImportStatement[]): string {
   // Sort imports within this group alphabetically.
   const sortedImports = sortImports(imports);
 
-  return [
-    `// ${title}`,
-    ...sortedImports.map((importItem) => importItem.text),
-  ].join("\n");
+  return [...sortedImports.map((importItem) => importItem.text)].join("\n");
 }
 
 /**
