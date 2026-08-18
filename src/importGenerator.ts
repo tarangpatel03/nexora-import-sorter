@@ -50,5 +50,5 @@ export function generateImportText(importItem: ImportStatement): string {
     importClause = generateNamedImports(namedImports, importItem.isMultiline);
   }
 
-  return `import ${typePrefix}${importClause} from "${source}";`;
+  return `import ${typePrefix}${importClause} from '${source}';`;
 }
