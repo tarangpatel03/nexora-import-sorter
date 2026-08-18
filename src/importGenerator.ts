@@ -1,5 +1,15 @@
 import { ImportStatement } from "./types";
 
+function generateNamedImports(names: string[], isMultiline: boolean): string {
+  const sortedNames = [...names].sort((a, b) => a.localeCompare(b));
+
+  if (isMultiline) {
+    return `{\n${sortedNames.map((name) => `  ${name},`).join("\n")}\n}`;
+  }
+
+  return `{ ${sortedNames.join(", ")} }`;
+}
+
 export function generateImportText(importItem: ImportStatement): string {
   const { source, kind, defaultImport, namespaceImport, namedImports } =
     importItem;
@@ -24,9 +34,10 @@ export function generateImportText(importItem: ImportStatement): string {
 
   // Default + named import
   else if (defaultImport && namedImports?.length) {
-    importClause = `${defaultImport}, { ${[...namedImports]
-      .sort((a, b) => a.localeCompare(b))
-      .join(", ")} }`;
+    importClause = `${defaultImport}, ${generateNamedImports(
+      namedImports,
+      importItem.isMultiline,
+    )}`;
   }
 
   // Default only
@@ -36,9 +47,7 @@ export function generateImportText(importItem: ImportStatement): string {
 
   // Named only
   else if (namedImports?.length) {
-    importClause = `{ ${[...namedImports]
-      .sort((a, b) => a.localeCompare(b))
-      .join(", ")} }`;
+    importClause = generateNamedImports(namedImports, importItem.isMultiline);
   }
 
   return `import ${typePrefix}${importClause} from "${source}";`;

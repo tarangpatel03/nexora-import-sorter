@@ -1,4 +1,5 @@
 import * as ts from "typescript";
+
 import {
   ImportGroup,
   ImportKind,
@@ -124,8 +125,12 @@ export function parseImports(
         ? statement.importClause.namedBindings.name.text
         : undefined;
 
+    // Check for multiline import
+    const text = code.slice(statement.getStart(sourceFile), statement.end);
+    const isMultiline = text.includes("\n");
+
     imports.push({
-      text: code.slice(statement.getStart(sourceFile), statement.end),
+      text,
       source,
       group: classifyImport(source, isSideEffect, config),
       kind,
@@ -134,6 +139,8 @@ export function parseImports(
       namespaceImport,
       namedImports,
       hasNamedImportAlias,
+
+      isMultiline,
 
       start: statement.getStart(sourceFile),
       end: statement.end,

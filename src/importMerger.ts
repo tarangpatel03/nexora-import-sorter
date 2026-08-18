@@ -37,6 +37,8 @@ export function mergeDuplicateImports(
 
     existing.defaultImport = existing.defaultImport ?? current.defaultImport;
 
+    existing.isMultiline = existing.isMultiline || current.isMultiline;
+
     if (existing.hasNamedImportAlias || current.hasNamedImportAlias) {
       merged.set(`${key}::${current.start}`, current);
 

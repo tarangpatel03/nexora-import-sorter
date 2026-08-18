@@ -23,6 +23,8 @@ export interface ImportStatement {
   namedImports?: string[];
   hasNamedImportAlias?: boolean;
 
+  isMultiline: boolean;
+
   start: number; // position where import starts
   end: number; // position where import ends
 }
