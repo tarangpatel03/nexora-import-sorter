@@ -1,5 +1,10 @@
 import * as ts from "typescript";
-import { ImportGroup, ImportStatement } from "./types";
+import {
+  ImportGroup,
+  ImportKind,
+  ImportSorterConfig,
+  ImportStatement,
+} from "./types";
 
 /**
  * Determines which import group an import belongs to.
@@ -17,7 +22,11 @@ import { ImportGroup, ImportStatement } from "./types";
  * 3. Absolute
  * 4. Relative
  */
-function classifyImport(source: string, isSideEffect: boolean): ImportGroup {
+function classifyImport(
+  source: string,
+  isSideEffect: boolean,
+  config: ImportSorterConfig,
+): ImportGroup {
   //! Side-effect detection must happen BEFORE path classification.
   //! For example, `import '@/config/i18n'` is absolute by path,
   //! but it should still belong to the Side Effect group.
@@ -31,7 +40,11 @@ function classifyImport(source: string, isSideEffect: boolean): ImportGroup {
   }
 
   // Absolute imports in our project use the @/ alias.
-  if (source.startsWith("@/")) {
+  const isAbsoluteImport = config.absoluteAliases.some((alias) =>
+    source.startsWith(alias),
+  );
+
+  if (isAbsoluteImport) {
     return "absolute";
   }
 
@@ -46,7 +59,10 @@ function classifyImport(source: string, isSideEffect: boolean): ImportGroup {
  * We use the TypeScript AST instead of regex so that imports such as
  * multiline imports and `import type` are handled correctly.
  */
-export function parseImports(code: string): ImportStatement[] {
+export function parseImports(
+  code: string,
+  config: ImportSorterConfig,
+): ImportStatement[] {
   // Parse the entire file using TypeScript's compiler API.
   const sourceFile = ts.createSourceFile(
     "file.tsx",
@@ -74,24 +90,51 @@ export function parseImports(code: string): ImportStatement[] {
 
     const source = moduleSpecifier.text;
 
-    /**
-     * `importClause` is undefined for side-effect imports.
-     *
-     * Example:
-     *   import 'react-native-gesture-handler';
-     *
-     * has no import clause, while:
-     *
-     *   import React from 'react';
-     *
-     * does.
-     */
+    // Side Effect
     const isSideEffect = statement.importClause === undefined;
+
+    // Kind: Type or Default
+    const kind: ImportKind =
+      statement.importClause?.isTypeOnly === true ? "type" : "runtime";
+
+    const hasNamedImportAlias =
+      statement.importClause?.namedBindings &&
+      ts.isNamedImports(statement.importClause.namedBindings)
+        ? statement.importClause.namedBindings.elements.some(
+            (element) => element.propertyName !== undefined,
+          )
+        : false;
+
+    // All import names like Button, Text etc...
+    const namedImports =
+      statement.importClause?.namedBindings &&
+      ts.isNamedImports(statement.importClause.namedBindings)
+        ? statement.importClause.namedBindings.elements.map(
+            (element) => element.name.text,
+          )
+        : undefined;
+
+    // Find Default imports name
+    const defaultImport = statement.importClause?.name?.text;
+
+    // Find `* as` import name
+    const namespaceImport =
+      statement.importClause?.namedBindings &&
+      ts.isNamespaceImport(statement.importClause.namedBindings)
+        ? statement.importClause.namedBindings.name.text
+        : undefined;
 
     imports.push({
       text: code.slice(statement.getStart(sourceFile), statement.end),
       source,
-      group: classifyImport(source, isSideEffect),
+      group: classifyImport(source, isSideEffect, config),
+      kind,
+
+      defaultImport,
+      namespaceImport,
+      namedImports,
+      hasNamedImportAlias,
+
       start: statement.getStart(sourceFile),
       end: statement.end,
     });

@@ -1,13 +1,13 @@
 {
   "name": "nexora-import-sorter",
   "displayName": "Import Sorter",
-  "description": "Sort TypeScript imports into library, absolute, and relative groups.",
-  "version": "0.0.1",
+  "description": "Sort and organize TypeScript imports with custom aliases, type grouping, duplicate merging, and sort on save.",
+  "version": "0.0.2",
   "publisher": "Nexora",
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/<your-username>/nexora-import-sorter"
+    "url": "https://github.com/tarangpatel03/nexora-import-sorter"
   },
   "license": "MIT",
   "engines": {
@@ -17,7 +17,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:import-sorter.sortImports"
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -33,7 +34,28 @@
         "key": "cmd+shift+i",
         "when": "editorTextFocus"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Import Sorter",
+      "properties": {
+        "importSorter.absoluteAliases": {
+          "type": "array",
+          "default": [
+            "@/",
+            "~/"
+          ],
+          "description": "Absolute import aliases used by the project.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "importSorter.sortOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically sort imports when saving TypeScript files."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

@@ -1,3 +1,4 @@
+import { generateImportText } from "./importGenerator";
 import { ImportStatement } from "./types";
 
 /**
@@ -15,12 +16,21 @@ import { ImportStatement } from "./types";
  *
  * `sensitivity: 'base'` makes the sorting case-insensitive.
  */
-function sortImports(imports: ImportStatement[]): ImportStatement[] {
-  return [...imports].sort((a, b) =>
-    a.source.localeCompare(b.source, undefined, {
-      sensitivity: "base",
-    }),
-  );
+// function sortImports(imports: ImportStatement[]): ImportStatement[] {
+//   return [...imports].sort((a, b) =>
+//     a.source.localeCompare(b.source, undefined, {
+//       sensitivity: "base",
+//     }),
+//   );
+// }
+function sortImports(imports: ImportStatement[]) {
+  return imports.sort((a, b) => {
+    if (a.hasNamedImportAlias || b.hasNamedImportAlias) {
+      return a.start - b.start;
+    }
+
+    return a.source.localeCompare(b.source);
+  });
 }
 
 /**
@@ -44,7 +54,9 @@ function formatGroup(title: string, imports: ImportStatement[]): string {
   // Sort imports within this group alphabetically.
   const sortedImports = sortImports(imports);
 
-  return [...sortedImports.map((importItem) => importItem.text)].join("\n");
+  return [
+    ...sortedImports.map((importItem) => generateImportText(importItem)),
+  ].join("\n");
 }
 
 /**
@@ -72,49 +84,38 @@ export function buildSortedImports(imports: ImportStatement[]): string {
 
   /**
    * Side-effect imports must always appear first.
-   *
-   * Examples:
-   *   import 'react-native-gesture-handler';
-   *   import '@/config/i18n';
    */
   const sideEffectImports = imports.filter(
-    (importItem) => importItem.group === "sideEffect",
+    (importItem) =>
+      importItem.group === "sideEffect" && importItem.kind === "runtime",
   );
 
   /**
    * Normal npm/package imports.
-   *
-   * Examples:
-   *   import React from 'react';
-   *   import axios from 'axios';
-   *   import { View } from 'react-native';
-   *   import { useNavigation } from '@react-navigation/native';
    */
   const libraryImports = imports.filter(
-    (importItem) => importItem.group === "library",
+    (importItem) =>
+      importItem.group === "library" && importItem.kind === "runtime",
   );
 
   /**
    * Project absolute imports using the @/ alias.
-   *
-   * Examples:
-   *   import AppText from '@/components/AppText';
-   *   import { useAuth } from '@/hooks/useAuth';
    */
   const absoluteImports = imports.filter(
-    (importItem) => importItem.group === "absolute",
+    (importItem) =>
+      importItem.group === "absolute" && importItem.kind === "runtime",
   );
 
   /**
    * Relative imports using ./ or ../.
-   *
-   * Examples:
-   *   import { styles } from './styles';
-   *   import { Header } from './components/Header';
-   *   import { formatDate } from '../utils/date';
    */
   const relativeImports = imports.filter(
-    (importItem) => importItem.group === "relative",
+    (importItem) =>
+      importItem.group === "relative" && importItem.kind === "runtime",
+  );
+
+  const typeImports = imports.filter(
+    (importItem) => importItem.kind === "type",
   );
 
   /**
@@ -127,6 +128,7 @@ export function buildSortedImports(imports: ImportStatement[]): string {
     formatGroup("Library Imports", libraryImports),
     formatGroup("Absolute Imports", absoluteImports),
     formatGroup("Relative Imports", relativeImports),
+    formatGroup("Type Imports", typeImports),
   ].filter(Boolean);
 
   // Add one blank line between each populated group.
