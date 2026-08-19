@@ -1,19 +1,12 @@
 import * as vscode from "vscode";
 
+import { mergeDuplicateImports } from "./importMerger";
 import { parseImports } from "./importParser";
 import { buildSortedImports } from "./importSorter";
-import { mergeDuplicateImports } from "./importMerger";
 
-/**
- * Called by VS Code when our extension is activated.
- */
+// Entry Point.
 export function activate(context: vscode.ExtensionContext) {
-  /**
-   * Register the "Import Sorter: Sort Imports" command.
-   *
-   * The command ID must match the command registered in package.json.
-   */
-
+  // Register Command same as `package.json`
   const disposable = vscode.commands.registerCommand(
     "import-sorter.sortImports",
     async () => {
@@ -43,15 +36,14 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable, saveListener);
 }
 
-/**
- * Called by VS Code when the extension is deactivated.
- */
+// Deactivate Extension
 export function deactivate() {}
 
 // Sort Function
 async function sortImportsInDocument(
   document: vscode.TextDocument,
 ): Promise<void> {
+  // Only For TypeScript
   if (
     document.languageId !== "typescript" &&
     document.languageId !== "typescriptreact"
@@ -61,12 +53,14 @@ async function sortImportsInDocument(
 
   const code = document.getText();
 
+  // Gets Configurations from VS Code Settings
   const config = {
     absoluteAliases: vscode.workspace
       .getConfiguration("importSorter")
       .get<string[]>("absoluteAliases") ?? ["@/"],
   };
 
+  // Parse all imports
   const imports = parseImports(code, config);
 
   if (imports.length === 0) {
@@ -79,13 +73,14 @@ async function sortImportsInDocument(
   const start = document.positionAt(firstImport.start);
   const end = document.positionAt(lastImport.end);
 
+  // Merge import with same import paths
   const mergedImports = mergeDuplicateImports(imports);
 
+  // Sort all inputs
   const sortedImports = buildSortedImports(mergedImports);
 
+  // Update imports inside Editor
   const edit = new vscode.WorkspaceEdit();
-
   edit.replace(document.uri, new vscode.Range(start, end), sortedImports);
-
   await vscode.workspace.applyEdit(edit);
 }

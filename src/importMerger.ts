@@ -35,8 +35,10 @@ export function mergeDuplicateImports(
       continue;
     }
 
+    // Is default import
     existing.defaultImport = existing.defaultImport ?? current.defaultImport;
 
+    // Is multiline import
     existing.isMultiline = existing.isMultiline || current.isMultiline;
 
     if (existing.hasNamedImportAlias || current.hasNamedImportAlias) {

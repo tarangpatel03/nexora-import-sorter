@@ -54,12 +54,7 @@ function classifyImport(
   return "library";
 }
 
-/**
- * Parses the source code and extracts all static import declarations.
- *
- * We use the TypeScript AST instead of regex so that imports such as
- * multiline imports and `import type` are handled correctly.
- */
+// Parse Function
 export function parseImports(
   code: string,
   config: ImportSorterConfig,
@@ -94,10 +89,11 @@ export function parseImports(
     // Side Effect
     const isSideEffect = statement.importClause === undefined;
 
-    // Kind: Type or Default
+    // Kind: Type import or Default import
     const kind: ImportKind =
       statement.importClause?.isTypeOnly === true ? "type" : "runtime";
 
+    // Ex: import x as param from 'abc';
     const hasNamedImportAlias =
       statement.importClause?.namedBindings &&
       ts.isNamedImports(statement.importClause.namedBindings)
@@ -118,14 +114,14 @@ export function parseImports(
     // Find Default imports name
     const defaultImport = statement.importClause?.name?.text;
 
-    // Find `* as` import name
+    // Find `* as` import names
     const namespaceImport =
       statement.importClause?.namedBindings &&
       ts.isNamespaceImport(statement.importClause.namedBindings)
         ? statement.importClause.namedBindings.name.text
         : undefined;
 
-    // Check for multiline import
+    // Check for multiline imports
     const text = code.slice(statement.getStart(sourceFile), statement.end);
     const isMultiline = text.includes("\n");
 
